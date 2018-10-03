@@ -1,8 +1,5 @@
-julia 0.4
+julia 1.0
 
-Compat 0.8.4
 JSON
-HttpServer
+HTTP
 MbedTLS
-HttpCommon
-Requests

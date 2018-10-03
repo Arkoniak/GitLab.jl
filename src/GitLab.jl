@@ -1,16 +1,15 @@
 module GitLab
 
-using Compat
+using Dates
+using Base64
 
 ##########
 # import #
 ##########
 
-import HttpCommon,
-       HttpServer,
+import HTTP,
        JSON,
-       MbedTLS,
-       Requests
+       MbedTLS
 
 #############
 # Utilities #
@@ -19,8 +18,8 @@ import HttpCommon,
 # include -------
 
 include("utils/GitLabType.jl")
-include("utils/auth.jl")
 include("utils/requests.jl")
+include("utils/auth.jl")
 
 # export -------
 
@@ -51,116 +50,126 @@ export  # owners.jl
         =#
         repos
 
-################
-# Repositories #
-################
+#################
+## Repositories #
+#################
 
-# include -------
+## include -------
 
-include("repositories/repositories.jl")
-include("repositories/contents.jl")
-include("repositories/commits.jl")
-include("repositories/branches.jl")
-include("repositories/statuses.jl")
+#include("repositories/repositories.jl")
+#include("repositories/contents.jl")
+#include("repositories/commits.jl")
+#include("repositories/branches.jl")
+#include("repositories/statuses.jl")
 
-# export -------
+## export -------
 
-export  # repositories.jl
-        Repo,
-        repo,
-        create_fork,
-        forks,
-        contributors,
-        collaborators,
-        iscollaborator,
-        add_collaborator,
-        remove_collaborator,
-        stats
+#export  # repositories.jl
+#        Repo,
+#        repo,
+#        create_fork,
+#        forks,
+#        contributors,
+#        collaborators,
+#        iscollaborator,
+#        add_collaborator,
+#        remove_collaborator,
+#        stats
     
-export  # contents.jl
-        Content,
-        file,
-        directory,
-        create_file,
-        update_file,
-        delete_file,
-        readme,
-        permalink
+#export  # contents.jl
+#        Content,
+#        file,
+#        directory,
+#        create_file,
+#        update_file,
+#        delete_file,
+#        readme,
+#        permalink
 
-export  # commits.jl
-        Commit,
-        commit,
-        commits
+#export  # commits.jl
+#        Commit,
+#        commit,
+#        commits
     
-export  # branches.jl
-        Branch,
-        branch,
-        branches
+#export  # branches.jl
+#        Branch,
+#        branch,
+#        branches
 
-export  # statuses.jl
-        Status,
-        create_status,
-        statuses,
-        status
+#export  # statuses.jl
+#        Status,
+#        create_status,
+#        statuses,
+#        status
 
-##########
-# Issues #
-##########
+###########
+## Issues #
+###########
 
-# include -------
+## include -------
 
-include("issues/pull_requests.jl")
-include("issues/issues.jl")
-include("issues/comments.jl")
+#include("issues/pull_requests.jl")
+#include("issues/issues.jl")
+#include("issues/comments.jl")
 
-# export -------
+## export -------
 
-export  # pull_requests.jl
-        PullRequest,
-        pull_requests,
-        pull_request
+#export  # pull_requests.jl
+#        PullRequest,
+#        pull_requests,
+#        pull_request
     
-export  # issues.jl
-        Issue,
-        issue,
-        issues,
-        create_issue,
-        edit_issue
+#export  # issues.jl
+#        Issue,
+#        issue,
+#        issues,
+#        create_issue,
+#        edit_issue
 
-export  # comments.jl
-        Comment,
-        comment,
-        comments,
-        create_comment,
-        edit_comment,
-        delete_comment
+#export  # comments.jl
+#        Comment,
+#        comment,
+#        comments,
+#        create_comment,
+#        edit_comment,
+#        delete_comment
+
+#############
+## Activity #
+#############
+
+## include -------
+
+#include("activity/events.jl")
+#include("activity/activity.jl")
+
+## export -------
+
+#export  # activity.jl
+#        star,
+#        unstar,
+#        stargazers,
+#        starred,
+#        watchers,
+#        watched,
+#        watch,
+#        unwatch
+    
+#export  # events/events.jl
+#        WebhookEvent
+
+#export  # events/listeners.jl
+#        EventListener,
+#        CommentListener
 
 ############
-# Activity #
+# Snippets #
 ############
 
 # include -------
 
-include("activity/events.jl")
-include("activity/activity.jl")
+include("snippets/snippet.jl")
 
-# export -------
-
-export  # activity.jl
-        star,
-        unstar,
-        stargazers,
-        starred,
-        watchers,
-        watched,
-        watch,
-        unwatch
-    
-export  # events/events.jl
-        WebhookEvent
-
-export  # events/listeners.jl
-        EventListener,
-        CommentListener
+export create_snippet
 
 end # module GitLab

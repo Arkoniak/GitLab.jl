@@ -2,23 +2,28 @@
 # Authorization Types #
 #######################
 
-abstract Authorization
+abstract type Authorization end
 
-immutable OAuth2 <: Authorization
-    token::GitLabString
+# TODO: SecureString on 0.7
+struct  OAuth2 <: Authorization
+    token::String
 end
 
-immutable AnonymousAuth <: Authorization end
+struct PersonalToken <: Authorization
+    token::String
+end
+
+struct AnonymousAuth <: Authorization end
 
 ###############
 # API Methods #
 ###############
 
-function authenticate(token::AbstractString; params = Dict(), options...)
+@api_default function authenticate(api::GitLabAPI, token::AbstractString; params = Dict(), options...)
     auth = OAuth2(token)
     ## params["access_token"] = auth.token
     params["private_token"] = auth.token ## MDP
-    gh_get("/"; params = params, options...)
+    gl_get(api, "/"; params = params, options...)
     return auth
 end
 
@@ -30,6 +35,11 @@ authenticate_headers!(headers, auth::AnonymousAuth) = headers
 
 function authenticate_headers!(headers, auth::OAuth2)
     headers["Authorization"] = "token $(auth.token)"
+    return headers
+end
+
+function authenticate_headers!(headers, auth::PersonalToken)
+    headers["Private-Token"] = "$(auth.token)"
     return headers
 end
 

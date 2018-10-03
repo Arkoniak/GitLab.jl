@@ -4,40 +4,40 @@
 
 
 type Owner <: GitLabType
-    name::Nullable{GitLabString}
-    username::Nullable{GitLabString}
-    id::Nullable{Int}
-    state::Nullable{GitLabString}
-    avatar_url::Nullable{HttpCommon.URI}
-    web_url::Nullable{HttpCommon.URI}
-    ownership_type::Nullable{GitLabString} 
+    name::Union{String, Nothing}
+    username::Union{String, Nothing}
+    id::Union{Int, Nothing}
+    state::Union{String, Nothing}
+    avatar_url::Union{HTTP.URI, Nothing}
+    web_url::Union{HTTP.URI, Nothing}
+    ownership_type::Union{String, Nothing} 
 
 #=
-    email::Nullable{GitLabString}
-    bio::Nullable{GitLabString}
-    company::Nullable{GitLabString}
-    location::Nullable{GitLabString}
-    gravatar_id::Nullable{GitLabString}
-    public_repos::Nullable{Int}
-    owned_private_repos::Nullable{Int}
-    total_private_repos::Nullable{Int}
-    public_gists::Nullable{Int}
-    private_gists::Nullable{Int}
-    followers::Nullable{Int}
-    following::Nullable{Int}
-    collaborators::Nullable{Int}
-    html_url::Nullable{HttpCommon.URI}
-    updated_at::Nullable{Dates.DateTime}
-    created_at::Nullable{Dates.DateTime}
-    date::Nullable{Dates.DateTime}
-    hireable::Nullable{Bool}
-    site_admin::Nullable{Bool}
+    email::Union{String, Nothing}
+    bio::Union{String, Nothing}
+    company::Union{String, Nothing}
+    location::Union{String, Nothing}
+    gravatar_id::Union{String, Nothing}
+    public_repos::Union{Int, Nothing}
+    owned_private_repos::Union{Int, Nothing}
+    total_private_repos::Union{Int, Nothing}
+    public_gists::Union{Int, Nothing}
+    private_gists::Union{Int, Nothing}
+    followers::Union{Int, Nothing}
+    following::Union{Int, Nothing}
+    collaborators::Union{Int, Nothing}
+    html_url::Union{HttpCommon.URI, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    date::Union{Dates.DateTime, Nothing}
+    hireable::Union{Bool, Nothing}
+    site_admin::Union{Bool, Nothing}
 =#
 end
 
 function Owner(data::Dict) 
     o = json2gitlab(Owner, data)
-    isnull(o.username) ? o.ownership_type = Nullable("Organization") : o.ownership_type = Nullable("User")
+    o.username == nothing ? o.ownership_type = "Organization" : o.ownership_type("User")
     o
 end
 
@@ -45,60 +45,55 @@ Owner(username::AbstractString, isorg = false) = Owner(
     Dict("username" => isorg ? "" : username, 
          "name" => isorg ? username : "",
          "ownership_type" => isorg ? "Organization" : "User"))
-## Owner(username::AbstractString) = Owner(Dict("username" => username))
 
-## namefield(owner::Owner) = owner.ownership_type == "Organization" ? owner.name : owner.username
 namefield(owner::Owner) = isorg(owner) ? owner.name : owner.username
 
-## typprefix(isorg) = isorg ? "orgs" : "users"
 typprefix(isorg) = isorg ? "projects" : "users"
 
 #############
 # Owner API #
 #############
 
-isorg(owner::Owner) = isnull(owner.ownership_type) ? true : get(owner.ownership_type, "") == "Organization"
+isorg(owner::Owner) = owner.ownership_type == nothing ? true : owner.ownership_type == "Organization"
 
-owner(owner_obj::Owner; options...) = owner(name(owner_obj), isorg(owner_obj); options...)
+@api_default owner(api::GitLabAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
 
-function owner(owner_obj, isorg = false; options...)
+@api_default function owner(api::GitLabAPI, owner_obj, isorg = false; options...)
     ## TODO Need to look for a cleaner way of doing this ! Returns an array even while requesting a specific user
     if isorg
-        result = gh_get_json("/api/v3/projects/search/$(owner_obj)"; options...)
+        result = gl_get_json(api, "/projects/search/$(owner_obj)"; options...)
         return Owner(result[1]["owner"])
     else
-        result = gh_get_json("/api/v3/users?username=$(owner_obj)"; options...)
+        result = gl_get_json(api, "/users?username=$(owner_obj)"; options...)
         return Owner(result[1])
     end
 end
 
-function users(; options...)
-    results, page_data = gh_get_paged_json("/api/v3/users"; options...)
+@api_default function users(api::GitLabAPI; options...)
+    results, page_data = gl_get_paged_json(api, "/users"; options...)
     return map(Owner, results), page_data
 end
 
-function orgs(owner; options...)
-    ## results, page_data = gh_get_paged_json("/api/v3/users/$(name(owner))/projects"; options...)
-    results, page_data = gh_get_paged_json("/api/v3/projects"; options...)
+@api_default function orgs(api::GitLabAPI, owner; options...)
+    results, page_data = gl_get_paged_json(api, "/projects"; options...)
     return map(Owner, results), page_data
 end
 
 #= TODO: There seems to be no equivalent for these APIs 
 function followers(owner; options...)
-    results, page_data = gh_get_paged_json("/api/v3/users/$(name(owner))/followers"; options...)
+    results, page_data = gl_get_paged_json("/api/v3/users/$(name(owner))/followers"; options...)
     return map(Owner, results), page_data
 end
 
 function following(owner; options...)
-    results, page_data = gh_get_paged_json("/api/v3/users/$(name(owner))/following"; options...)
+    results, page_data = gl_get_paged_json("/api/v3/users/$(name(owner))/following"; options...)
     return map(Owner, results), page_data
 end
 =#
 
-repos(owner::Owner; options...) = repos(name(owner), isorg(owner); options...)
+@api_default repos(api::GitLabAPI, owner::Owner; options...) = repos(api, name(owner), isorg(owner); options...)
 
-function repos(owner, isorg = false; options...)
-    ## results, page_data = gh_get_paged_json("/api/v3/$(typprefix(isorg))/$(name(owner))/repos"; options...)
-    results, page_data = gh_get_paged_json("/api/v3/projects/owned"; options...)
+@api_default function repos(api::GitLabAPI, owner, isorg = false; options...)
+    results, page_data = gl_get_paged_json(api, "/projects/owned"; options...)
     return map(Repo, results), page_data
 end
